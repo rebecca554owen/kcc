@@ -3701,7 +3701,7 @@ static u32 kcc_tso_segs_goal(struct sock* sk)
     return min_t(u32, segs, KCC_TSO_MAX_SEGS);
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 0, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 1, 0)
 static u32 kcc_tso_segs(struct sock* sk, unsigned int mss_now)
 {
     (void)mss_now;
@@ -5677,7 +5677,10 @@ static struct tcp_congestion_ops tcp_kcc_cong_ops __read_mostly = {
     .undo_cwnd = kcc_undo_cwnd,
     .cwnd_event = kcc_cwnd_event,
     .ssthresh = kcc_ssthresh,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 0, 0)
+    /* The per-connection "tso_segs" callback only exists from Linux 7.1 on.
+     * 7.0 (and everything older) exposes "min_tso_segs" instead, which has a
+     * different prototype and a different meaning. */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(7, 1, 0)
     .tso_segs = kcc_tso_segs,
 #else
     .min_tso_segs = kcc_min_tso_segs,
